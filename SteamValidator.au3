@@ -4,7 +4,7 @@
 #include <FileConstants.au3>
 #include <MsgBoxConstants.au3>
 
-#include ".\Includes\_GetSteam\_GetSteam.au3"
+#include "./Includes/_GetSteam/_GetSteam.au3"
 
 ; This script validates all games in a user's Steam library
 ; Author: Shawn Maiberger
@@ -203,3 +203,4 @@ FileClose($hFileOpen)
    ; Give Steam client enough time to prepare for the next scan
    Sleep($timeBetweenScans * 1000)
 Next
+
