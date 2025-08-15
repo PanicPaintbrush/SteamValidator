@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Cache tools
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cache
         with:
           path: |
@@ -43,7 +43,7 @@ jobs:
         run: |
           Start-Process "${env:ProgramFiles(x86)}\AutoIt3\AutoIt3.exe" "`"${env:ProgramFiles(x86)}\AutoIt3\SciTE\AutoIt3Wrapper\AutoIt3Wrapper.au3`" /NoStatus /prod /in SteamValidator.au3" -NoNewWindow -Wait
           sha256sum -b SteamValidator*.exe > checksums.sha256
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: sv
           path: |
