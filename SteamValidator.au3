@@ -1,15 +1,15 @@
-#include <File.au3>
 #include <Array.au3>
-#include <ScreenCapture.au3>
+#include <File.au3>
 #include <FileConstants.au3>
 #include <MsgBoxConstants.au3>
-
-#include "_GetSteam.au3"
+#include <ScreenCapture.au3>
 
 ; This script validates all games in a user's Steam library
 ; Author: Shawn Maiberger
 ;         @ionblade (Twitter)
 ; By running this script, in whole or in part, you accept that the author is not acceptable for any damage to your computer or data caused by the script.
+
+
 
 ;_____USER-CONFIGURABLE VARIABLES__________________________________________________________________________________________________________________
 
@@ -35,34 +35,34 @@ If Not _FileReadToArray("validationBlacklist.txt", $validationBlacklist, 0) Then
    $validationBlacklist = 0
 EndIf
 
-$hLibraries = _GetSteamPath()
+; Try to read Steam directory from registry
+$steamRegLocation = RegRead("HKEY_LOCAL_MACHINE\Software\Valve\Steam","InstallPath")
 If @error Then
-	; Prompt user for the Steamapps directory
-	$hLibraries = FileSelectFolder("Please select the steamapps directory within your Steam install directory", "")
-	If @error Then
-	   MsgBox($MB_SYSTEMMODAL, "", "No folder was selected.")
-	   Exit
-	EndIf
+   $steamRegLocation = ""
+Else
+   $steamRegLocation = $steamRegLocation & "\steamapps"
 EndIf
-$hLibraries &= "\steamapps\libraryfolders.vdf"
 
-$loggingDirectory = ""
+; Prompt user for the Steamapps directory, prepopulating with the location previously found in the registry, if any
+$steamappsDirectory = FileSelectFolder("Please select the steamapps directory within your Steam install directory", $steamRegLocation)
+If @error Then
+   MsgBox($MB_SYSTEMMODAL, "", "No folder was selected.")
+   Exit
+EndIf
+
 ; Prompt user for location to log results
-#cs
 $loggingDirectory = FileSelectFolder("Please select a writable folder into which results will be logged", "")
 If @error Then
    MsgBox($MB_SYSTEMMODAL, "", "No folder was selected.")
    Exit
 EndIf
-#ce
 
-_GetSteamGamesFromAllLibraries()
+; Get a list of all the games installed in the steamapps directory
+$acfFiles = _FileListToArray($steamAppsDirectory, "*.acf")
 If @error Then
-	MsgBox($MB_SYSTEMMODAL, "", "Either an invalid steam path was selected or there are no games installed.")
-	Exit
+   MsgBox($MB_SYSTEMMODAL, "", "Either an invalid steamapps path was selected or there are no games installed.")
+   Exit
 EndIf
-
-Exit ; Haven't rewritten past this point
 
 ; For each of the games installed, get the game's name and Steam ID, then call the verify function on that game.  Wait for verification to complete,
 ; then take a screenshot of the verification window and continue to the next game.
@@ -74,7 +74,7 @@ For $currentFile = 1 to $acfFiles[0]
    ; Set tooltip to let user know progress in systemtray
    TraySetToolTip("Validating item " & $currentFile & "/" & $acfFiles[0] & ".  " & $validationErrors & " apps did not process, " & $validationWarnings & " apps validated too quickly, " & $validationBlacklistSkips & " skipped, " & $validationSuccesses & " successful.")
 
-   $fullAcfPath = $hLibraries & "\" & $acfFiles[$currentFile]
+   $fullAcfPath = $steamappsDirectory & "\" & $acfFiles[$currentFile]
 
    $appID = ""
    $name = ""
@@ -203,6 +203,3 @@ FileClose($hFileOpen)
    ; Give Steam client enough time to prepare for the next scan
    Sleep($timeBetweenScans * 1000)
 Next
-
-
-
